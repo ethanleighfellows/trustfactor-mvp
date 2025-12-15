@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Trust Factor MVP Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #0b1020;
+      color: #f5f5f5;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    a {
+      color: #80b3ff;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: #111827;
+      border-radius: 8px;
+      padding: 16px 20px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .card {
+      background: #020617;
+      border-radius: 8px;
+      padding: 12px 14px;
+      border: 1px solid #1f2937;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    label {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    select, button {
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    select {
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #f9fafb;
+      margin-left: 4px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    button {
+      border-radius: 4px;
+      border: 1px solid #4b5563;
+      padding: 6px 10px;
+      background: #111827;
+      color: #f9fafb;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1f2937;
+    }
+
+    button[data-event="high"] {
+      border-color: #f97373;
+      color: #fecaca;
+    }
+
+    button[data-event="medium"] {
+      border-color: #fbbf24;
+      color: #fef9c3;
+    }
+
+    button[data-event="clean"] {
+      border-color: #4ade80;
+      color: #dcfce7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    th {
+      font-weight: 600;
+      color: #e5e7eb;
+      background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-green {
+      background: rgba(34, 197, 94, 0.12);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.6);
+    }
+
+    .tag-yellow {
+      background: rgba(234, 179, 8, 0.12);
+      color: #facc15;
+      border: 1px solid rgba(234, 179, 8, 0.6);
+    }
+
+    .tag-red {
+      background: rgba(248, 113, 113, 0.12);
+      color: #fca5a5;
+      border: 1px solid rgba(248, 113, 113, 0.6);
+    }
+
+    .enforcement {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .stats-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .stats-list li {
+      margin-bottom: 2px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #0b1120;
+      border: 1px solid #1f2937;
+    }
+
+    .log {
+      max-height: 180px;
+      overflow-y: auto;
+      font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 6px 8px;
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+      color: #d1d5db;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Trust Factor MVP Demo</h1>
+    <p style="font-size: 13px; color:#d1d5db; margin-top:4px;">
+      Simulate trust scores, bands, and stricter vs. lighter guardrails based on user behavior over time.
+    </p>
+
+    <div class="grid">
+      <!-- Controls + Stats -->
+      <div class="card">
+        <h2>1. Simulate user behavior</h2>
+        <label>
+          Actor (stable ID):
+          <select id="userSelect"></select>
+        </label>
+
+        <label>
+          Violation type:
+          <select id="violationType">
+            <option value="prompt_injection">Prompt injection / guardrail</option>
+            <option value="policy_block">Policy violation</option>
+          </select>
+        </label>
+
+        <div class="btn-row">
+          <button data-event="medium">Medium violation (-10)</button>
+          <button data-event="high">High violation (-25)</button>
+          <button data-event="clean">Clean day (+1.5)</button>
+        </div>
+
+        <p class="hint">
+          Each event updates the actor's score, band (Red / Yellow / Green), and enforcement levers.
+        </p>
+
+        <h2 style="margin-top:16px;">2. Trust band stats</h2>
+        <ul class="stats-list" id="bandStats"></ul>
+
+        <h2 style="margin-top:12px;">3. Top Red actors</h2>
+        <ul class="stats-list" id="topRed"></ul>
+
+        <h2 style="margin-top:12px;">4. Violation types</h2>
+        <ul class="stats-list" id="violationStats"></ul>
+      </div>
+
+      <!-- Users + Log -->
+      <div class="card">
+        <h2>Actors & enforcement view</h2>
+        <div style="max-height:260px; overflow-y:auto; border:1px solid #1f2937; border-radius:4px;">
+          <table>
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Score</th>
+                <th>Band</th>
+                <th>Violations</th>
+                <th>Enforcement</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody"></tbody>
+          </table>
+        </div>
+
+        <h2 style="margin-top:16px;">Event log (most recent first)</h2>
+        <div class="log" id="eventLog"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // CONFIG: scoring & thresholds
+    // ----------------------------
+    const SCORE_MAX = 100;
+    const SCORE_MIN = 0;
+
+    const BAND_THRESHOLDS = {
+      GREEN_MIN: 85,  // 85–100
+      YELLOW_MIN: 50  // 50–84
+      // else Red: 0–49
+    };
+
+    const SCORE_DELTAS = {
+      mediumViolation: -10,
+      highViolation: -25,
+      cleanDay: +1.5
+    };
+
+    // Example starting population
+    const users = [
+      { id: "user-001", label: "user-001", score: 80, violations: 0, band: "Yellow", history: [] },
+      { id: "user-002", label: "user-002", score: 92, violations: 0, band: "Green", history: [] },
+      { id: "user-003", label: "user-003", score: 45, violations: 2, band: "Red", history: [] },
+      { id: "user-004", label: "user-004 (new / volatile)", score: 60, violations: 0, band: "Yellow", history: [] }
+    ];
+
+    const violationCounters = {
+      prompt_injection: 0,
+      policy_block: 0,
+      medium: 0,
+      high: 0
+    };
+
+    // ----------------------------
+    // Helpers
+    // ----------------------------
+    function clampScore(score) {
+      return Math.max(SCORE_MIN, Math.min(SCORE_MAX, score));
+    }
+
+    function bandForScore(score) {
+      if (score >= BAND_THRESHOLDS.GREEN_MIN) return "Green";
+      if (score >= BAND_THRESHOLDS.YELLOW_MIN) return "Yellow";
+      return "Red";
+    }
+
+    function enforcementForBand(band) {
+      switch (band) {
+        case "Green":
+          return "Higher RPM & priority, lighter guardrails, standard logging.";
+        case "Yellow":
+          return "Default guardrails & thresholds, normal latency, standard logging.";
+        case "Red":
+          return "Max guardrails, stricter thresholds, throttled RPM, heavier logging.";
+        default:
+          return "Unknown.";
+      }
+    }
+
+    function bandClass(band) {
+      if (band === "Green") return "tag tag-green";
+      if (band === "Yellow") return "tag tag-yellow";
+      return "tag tag-red";
+    }
+
+    function formatScore(score) {
+      return score.toFixed(1);
+    }
+
+    // ----------------------------
+    // DOM refs
+    // ----------------------------
+    const userSelectEl = document.getElementById("userSelect");
+    const violationTypeEl = document.getElementById("violationType");
+    const userTableBodyEl = document.getElementById("userTableBody");
+    const bandStatsEl = document.getElementById("bandStats");
+    const topRedEl = document.getElementById("topRed");
+    const violationStatsEl = document.getElementById("violationStats");
+    const eventLogEl = document.getElementById("eventLog");
+    const buttons = document.querySelectorAll("button[data-event]");
+
+    // ----------------------------
+    // Rendering
+    // ----------------------------
+    function renderUserSelect() {
+      userSelectEl.innerHTML = "";
+      users.forEach((u, idx) => {
+        const opt = document.createElement("option");
+        opt.value = u.id;
+        opt.textContent = `${u.label}`;
+        if (idx === 0) opt.selected = true;
+        userSelectEl.appendChild(opt);
+      });
+    }
+
+    function renderUsersTable() {
+      userTableBodyEl.innerHTML = "";
+      users.forEach(u => {
+        const tr = document.createElement("tr");
+
+        const tdId = document.createElement("td");
+        tdId.textContent = u.label;
+
+        const tdScore = document.createElement("td");
+        tdScore.textContent = formatScore(u.score);
+
+        const tdBand = document.createElement("td");
+        const span = document.createElement("span");
+        span.className = bandClass(u.band);
+        span.textContent = u.band;
+        tdBand.appendChild(span);
+
+        const tdViolations = document.createElement("td");
+        tdViolations.textContent = u.violations;
+
+        const tdEnforcement = document.createElement("td");
+        const enf = document.createElement("div");
+        enf.className = "enforcement";
+        enf.textContent = enforcementForBand(u.band);
+        tdEnforcement.appendChild(enf);
+
+        tr.appendChild(tdId);
+        tr.appendChild(tdScore);
+        tr.appendChild(tdBand);
+        tr.appendChild(tdViolations);
+        tr.appendChild(tdEnforcement);
+        userTableBodyEl.appendChild(tr);
+      });
+    }
+
+    function renderStats() {
+      // Band counts
+      const counts = { Green: 0, Yellow: 0, Red: 0 };
+      users.forEach(u => {
+        counts[u.band] = (counts[u.band] || 0) + 1;
+      });
+
+      bandStatsEl.innerHTML = "";
+      const li1 = document.createElement("li");
+      li1.innerHTML = `<span class="pill">Green</span> ${counts.Green} users`;
+      const li2 = document.createElement("li");
+      li2.innerHTML = `<span class="pill">Yellow</span> ${counts.Yellow} users`;
+      const li3 = document.createElement("li");
+      li3.innerHTML = `<span class="pill">Red</span> ${counts.Red} users`;
+      bandStatsEl.appendChild(li1);
+      bandStatsEl.appendChild(li2);
+      bandStatsEl.appendChild(li3);
+
+      // Top Red by violations
+      topRedEl.innerHTML = "";
+      const redUsers = users
+        .filter(u => u.band === "Red")
+        .sort((a, b) => b.violations - a.violations)
+        .slice(0, 5);
+
+      if (redUsers.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "No Red users yet.";
+        topRedEl.appendChild(li);
+      } else {
+        redUsers.forEach(u => {
+          const li = document.createElement("li");
+          li.innerHTML = `<span class="pill">${u.label}</span> ${u.violations} violations`;
+          topRedEl.appendChild(li);
+        });
+      }
+
+      // Violation stats
+      violationStatsEl.innerHTML = "";
+      const liPI = document.createElement("li");
+      liPI.textContent = `Prompt injection / guardrail: ${violationCounters.prompt_injection}`;
+      const liPB = document.createElement("li");
+      liPB.textContent = `Policy violations: ${violationCounters.policy_block}`;
+      const liMed = document.createElement("li");
+      liMed.textContent = `Medium severity events: ${violationCounters.medium}`;
+      const liHigh = document.createElement("li");
+      liHigh.textContent = `High severity events: ${violationCounters.high}`;
+      violationStatsEl.appendChild(liPI);
+      violationStatsEl.appendChild(liPB);
+      violationStatsEl.appendChild(liMed);
+      violationStatsEl.appendChild(liHigh);
+    }
+
+    function logEvent(message) {
+      const div = document.createElement("div");
+      div.className = "log-entry";
+      const ts = new Date().toLocaleTimeString();
+      div.textContent = `[${ts}] ${message}`;
+      eventLogEl.prepend(div);
+    }
+
+    function reRenderAll() {
+      renderUsersTable();
+      renderStats();
+    }
+
+    // ----------------------------
+    // Update logic
+    // ----------------------------
+    function findUserById(id) {
+      return users.find(u => u.id === id);
+    }
+
+    function applyEvent(userId, eventType, violationType) {
+      const user = findUserById(userId);
+      if (!user) return;
+
+      let delta = 0;
+      let severityLabel = "";
+      let description = "";
+
+      if (eventType === "medium") {
+        delta = SCORE_DELTAS.mediumViolation;
+        severityLabel = "medium";
+        description = "Medium violation";
+        violationCounters.medium += 1;
+      } else if (eventType === "high") {
+        delta = SCORE_DELTAS.highViolation;
+        severityLabel = "high";
+        description = "High-severity violation";
+        violationCounters.high += 1;
+      } else if (eventType === "clean") {
+        delta = SCORE_DELTAS.cleanDay;
+        severityLabel = "clean";
+        description = "Clean usage day";
+      }
+
+      // Update score
+      const oldScore = user.score;
+      const newScore = clampScore(oldScore + delta);
+      user.score = newScore;
+
+      // Update band
+      const oldBand = user.band;
+      user.band = bandForScore(newScore);
+
+      // Track violations
+      if (eventType === "medium" || eventType === "high") {
+        user.violations += 1;
+        if (violationType === "prompt_injection") {
+          violationCounters.prompt_injection += 1;
+        } else if (violationType === "policy_block") {
+          violationCounters.policy_block += 1;
+        }
+      }
+
+      // History & log
+      const entry = {
+        ts: Date.now(),
+        type: eventType,
+        violationType,
+        delta,
+        oldScore,
+        newScore,
+        oldBand,
+        newBand: user.band
+      };
+      user.history.push(entry);
+
+      const bandChange =
+        oldBand !== user.band ? ` (band ${oldBand} → ${user.band})` : "";
+      logEvent(
+        `${user.label}: ${description} (${violationType}) ${delta > 0 ? "+" : ""}${delta.toFixed(
+          1
+        )} points → ${newScore.toFixed(1)}${bandChange}`
+      );
+
+      reRenderAll();
+    }
+
+    // ----------------------------
+    // Events
+    // ----------------------------
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const eventType = btn.getAttribute("data-event");
+        const userId = userSelectEl.value;
+        const violationType = violationTypeEl.value;
+        applyEvent(userId, eventType, violationType);
+      });
+    });
+
+    // ----------------------------
+    // Init
+    // ----------------------------
+    function init() {
+      // Initialize bands based on scores (in case you tweak starting scores)
+      users.forEach(u => {
+        u.band = bandForScore(u.score);
+      });
+      renderUserSelect();
+      reRenderAll();
+    }
+
+    init();
+  </script>
+</body>
+</html>
