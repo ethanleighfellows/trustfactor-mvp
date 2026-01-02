@@ -141,4 +141,4 @@ is the **exclusive intellectual property of Ethan Leigh-Fellows**.
 
 **Any use whatsoever requires explicit prior written permission.**
 
-Unauthorized use, reproduction, or implementation of this idea or code is **strictly prohibited**
+Unauthorized use, reproduction, or implementation of this idea or code is **strictly prohibited** UNLESS OTHERWISE AGREED TO. 
