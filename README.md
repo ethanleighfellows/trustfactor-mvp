@@ -1,8 +1,8 @@
-# 🔐 Trust Factor MVP
+# 🔐 Trust Factor Demo
 
 **Trust Scoring & Guardrails Prototype**
 
-**Trust Factor MVP** is a fully client-side prototype that demonstrates how **trust scoring, banding, and enforcement** can be used to manage user behavior in AI systems.
+**Trust Factor Demo** is a fully client-side prototype that demonstrates how **trust scoring, banding, and enforcement** can be used to manage user behavior in AI systems.
 
 It simulates assigning each actor a **dynamic trust score**, mapping them into **Green / Yellow / Red bands**, and automatically adjusting enforcement behavior (checks, throttling, logging) based on observed events.
 
