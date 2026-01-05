@@ -1,6 +1,6 @@
 # 🔐 Trust Factor MVP
 
-**A Dynamo-style Trust Scoring & Guardrails Prototype**
+**Trust Scoring & Guardrails Prototype**
 
 **Trust Factor MVP** is a fully client-side prototype that demonstrates how **trust scoring, banding, and enforcement** can be used to manage user behavior in AI systems.
 
